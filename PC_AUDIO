@@ -1,0 +1,56 @@
+import socket
+import pygame
+import time
+import threading
+
+# --- Configuración ---
+UDP_IP = "0.0.0.0"
+UDP_PORT = 5005
+ESP32_IP = "192.168.1.50"  # IP de la ESP-32
+
+# Mapa de objetos → archivos de audio
+AUDIO_MAP = {
+    "PAISAJE_001": "audio/montaña.mp3",
+    "ANIMAL_001":  "audio/condor.mp3",
+    "FOTO_001":    "audio/plaza_bolivar.mp3",
+    # Agrega todos tus objetos aquí
+}
+
+pygame.mixer.init()
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock.bind((UDP_IP, UDP_PORT))
+
+print("Servidor de audio escuchando...")
+
+def reproducir_y_resumir(objeto):
+    audio_path = AUDIO_MAP.get(objeto)
+    if not audio_path:
+        print(f"[!] Objeto desconocido: {objeto}")
+        # Reanudar de todas formas para no bloquear el carro
+        enviar_resume()
+        return
+
+    print(f"[▶] Reproduciendo: {audio_path}")
+    pygame.mixer.music.load(audio_path)
+    pygame.mixer.music.play()
+
+    # Esperar a que termine el audio
+    while pygame.mixer.music.get_busy():
+        time.sleep(0.1)
+
+    print("[✓] Audio terminado → enviando RESUME")
+    enviar_resume()
+
+def enviar_resume():
+    sock.sendto(b"RESUME", (ESP32_IP, UDP_PORT))
+
+# Loop principal
+while True:
+    data, addr = sock.recvfrom(64)
+    objeto = data.decode().strip()
+    print(f"[←] Recibido: '{objeto}' desde {addr}")
+
+    # Ejecutar en hilo para no bloquear la escucha
+    t = threading.Thread(target=reproducir_y_resumir, args=(objeto,))
+    t.daemon = True
+    t.start()
