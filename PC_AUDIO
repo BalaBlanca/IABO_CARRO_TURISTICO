@@ -6,11 +6,11 @@ import threading
 # --- Configuración ---
 UDP_IP = "0.0.0.0"
 UDP_PORT = 5005
-ESP32_IP = "192.168.1.50"  # IP de la ESP-32
+ESP32_IP = "---"  # IP de la ESP-32
 
 # Mapa de objetos → archivos de audio
 AUDIO_MAP = {
-    "PAISAJE_001": "audio/montaña.mp3",
+    "PAISAJE_001": "audio/prueba.mp3",
     "ANIMAL_001":  "audio/condor.mp3",
     "FOTO_001":    "audio/plaza_bolivar.mp3",
     # Agrega todos tus objetos aquí
